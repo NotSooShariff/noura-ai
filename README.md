@@ -1,1 +1,1 @@
-# noura-ai
+# Noura AI
