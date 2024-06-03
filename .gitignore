@@ -1,3 +1,6 @@
 mail_credentials.json
 token.json
 credentials.json
+.env
+webcam.jpg
+screenshot.jpg
