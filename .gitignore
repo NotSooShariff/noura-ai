@@ -4,3 +4,4 @@ credentials.json
 .env
 webcam.jpg
 screenshot.jpg
+venv/

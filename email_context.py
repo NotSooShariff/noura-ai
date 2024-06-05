@@ -6,6 +6,7 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from bs4 import BeautifulSoup
 
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
@@ -36,15 +37,37 @@ def main():
         msg = service.users().messages().get(userId='me', id=msg['id'], format='full').execute()
         payload = msg.get('payload')
         headers = payload.get('headers')
+        
         subject = ''
+        sender = ''
         for header in headers:
             if header.get('name') == 'Subject':
                 subject = header.get('value')
+            if header.get('name') == 'From':
+                sender = header.get('value')
         
         snippet = msg.get('snippet')
         
-        print('Message snippet:', snippet)
+        body = ''
+        if 'parts' in payload:
+            for part in payload['parts']:
+                if part['mimeType'] == 'text/plain':
+                    body = base64.urlsafe_b64decode(part['body']['data']).decode('utf-8')
+                elif part['mimeType'] == 'text/html':
+                    body = base64.urlsafe_b64decode(part['body']['data']).decode('utf-8')
+        else:
+            body = base64.urlsafe_b64decode(payload['body']['data']).decode('utf-8')
+
+        soup = BeautifulSoup(body, 'html.parser')
+        p_tags = soup.find_all('p')
+
         print('Message subject:', subject)
+        print('Message snippet:', snippet)
+        print('Message sender:', sender)
+        print('Message body:')
+        for p in p_tags:
+            print(p.text)
+        print('\n' + '-'*50 + '\n')
 
 if __name__ == '__main__':
     main()
