@@ -11,6 +11,7 @@ from faster_whisper import WhisperModel
 import speech_recognition as sr
 import time
 import re
+import pyttsx3
 
 load_dotenv()
 
@@ -142,25 +143,43 @@ def vision_prompt(prompt, photo_path):
     response = model.generate_content([vision_prompt_message, img])
     return response.text
 
-def speak(text):
-    player_stream = pyaudio.PyAudio().open(format=pyaudio.paInt16, channels=1, rate=24000, output=True)
-    stream_start = False
+"""Uncomment the speak function below and comment the current speak function
+if you prefer to use a more realistic voice model from OpenAI instead of the
+PyTTSX3 Library. However do note that the tokens for it are paid"""
 
-    with openai_client.audio.speech.with_streaming_response.create(
-        model='tts-1',
-        voice='alloy', 
-        response_format='pcm',
-        input=text,
-    ) as response:
-        silence_threshold = 0.01
-        for chunk in response.iterbytes(chunk_size=1024):
-            if stream_start:
-                player_stream.write(chunk)
-            else: 
-                if max(chunk) > silence_threshold:
-                    player_stream.write(chunk)
-                    stream_start = True
-    player_stream.close()
+# def speak(text):
+#     player_stream = pyaudio.PyAudio().open(format=pyaudio.paInt16, channels=1, rate=24000, output=True)
+#     stream_start = False
+
+#     with openai_client.audio.speech.with_streaming_response.create(
+#         model='tts-1',
+#         voice='alloy', 
+#         response_format='pcm',
+#         input=text,
+#     ) as response:
+#         silence_threshold = 0.01
+#         for chunk in response.iterbytes(chunk_size=1024):
+#             if stream_start:
+#                 player_stream.write(chunk)
+#             else: 
+#                 if max(chunk) > silence_threshold:
+#                     player_stream.write(chunk)
+#                     stream_start = True
+#     player_stream.close()
+
+def speak(text):
+    # Initialize the pyttsx3 engine
+    engine = pyttsx3.init()
+    
+    # Set properties before adding anything to the queue
+    engine.setProperty('rate', 150)  # Speed percent (can go from 0 to 200)
+    engine.setProperty('volume', 1)  # Volume 0-1
+
+    # Adding the text to the queue
+    engine.say(text)
+
+    # Run and wait until the speech is finished
+    engine.runAndWait()
 
 def wav_to_text(audio_path):
     segments, _ = whisper_model.transcribe(audio_path)
